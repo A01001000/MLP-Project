@@ -14,7 +14,7 @@ MCI_folder = os.walk(os.getcwd() + "/ADNI/MCI")
 CN_folder = os.walk(os.getcwd() + "/ADNI/CN")
 
 # Add all files to list
-endings = ["AD"]
+endings = ["AD", "MCI", "CN"]
 for ending in endings:
     output_path = "localisation_outputs/" + ending +"/"
     folder = os.walk(os.getcwd() + "/ADNI/" + ending)
@@ -31,18 +31,21 @@ for ending in endings:
             localiser = MRILocaliser(file)
             try:
                 localiser.localise()
+                if localiser.data_array.shape[0] != 20:
+                    print("Something weird with file " + file)
+                    bad_localisations.append(file)
             except:
                 print("Error localising file " + file)
                 bad_localisations.append(file)
         except:
             print("Error reading file " + file)
             bad_reads.append(file)
-        scan_name = os.path.basename(file).split(".")[0]
-        output_dir = output_path + scan_name + "/"
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
-        save_array(output_dir, localiser.data_array)
-        break
+        print("dims = " + str(localiser.data_array.shape))
+        # scan_name = os.path.basename(file).split(".")[0]
+        # output_dir = output_path + scan_name + "/"
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
+        # save_array(output_dir, localiser.data_array)
 
     with open(output_path + "bad_localisations.txt", "w") as f:
         for file in bad_localisations:

@@ -7,8 +7,10 @@ import random
 # ADNI/AD/I67261.nii
 # 
 
-path = "/home/arecibo/mlp-coursework_3/ADNI/AD/I64750.nii"
+path = "/home/arecibo/mlp-coursework_3/ADNI/CN/I59214.nii"
 mri_localiser = MRILocaliser(path)
+# mri_localiser._threshold_and_rescale_data()
+# mri_localiser._remove_slices_with_shoulders()
 mri_localiser.localise()
 
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 8))
@@ -19,7 +21,7 @@ ax2.set_title(mri_localiser.data_path)
 ax3.set_title(mri_localiser.data_path)
 
 plot_1 = mri_localiser.data_array
-plot_2 = mri_localiser.data_array
+plot_2 = mri_localiser.augmented_data_array
 plot_3 = mri_localiser.data_array
 
 if plot_2 is None:

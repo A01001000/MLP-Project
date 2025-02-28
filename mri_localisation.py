@@ -12,7 +12,7 @@ class MRILocaliser:
     # Sagittal (left to right) corresponds to dimension 2
 
     ##  Main methods
-    def __init__(self, data_path, target_shape=(20, 100, 100)):
+    def __init__(self, data_path, target_shape=(20, 160, 160)):
         self.CROP_SENSITIVITY = 10
         self.TARGET_SHAPE = target_shape
 
@@ -86,8 +86,8 @@ class MRILocaliser:
     def _crop_axial(self):
         ''' Heuristically crops outer axial slices based on the slice's corresponding convex mask.
             Slices are included based on a threshold of 3/4, or the maximal end slice intensity.
-            The latter condition helps keep the mask centred if someone has high shoulders.
-            or if they're wearing a hat?'''
+            The latter condition helps keep the mask centred if someone has high shoulders (or if they're wearing a hat?)
+            The slice range is recorded and used by _crop_to_hippocampus_guess().'''
         self.convex_mask = self._create_convex_mask()
         convex_sums = self._calculate_convex_slice_sums()
         highest_end = max(np.min(convex_sums[:convex_sums.shape[0] // 2]), 
@@ -98,7 +98,7 @@ class MRILocaliser:
         size_diff = slice_num - (i2 - i1)
         i1 -= size_diff // 2
         i2 = i1 + slice_num
-        self._crop_arrays(axial_indices=(i1, i2))
+        self.axial_range = (i1, i2)
     
     def _guess_central_hippocampus_slice(self):
         ''' Locates the axial centre of the hippocampus, based on the sagittal brightness profile.
@@ -110,7 +110,7 @@ class MRILocaliser:
         slice_brightnesses = self._calculate_sagittal_weighted_slice_brightnesses()
         likely_gap = (10, 20) # Shouldn't really be hard-coded, instead should depend on head height
         diffs = np.zeros(len(slice_brightnesses))
-        for i in range(0, len(slice_brightnesses)):
+        for i in range(self.axial_range[0], self.axial_range[1]):
             greatest_diff = 0
             for j in range(likely_gap[0], likely_gap[1]):
                 if i + j < len(slice_brightnesses):
@@ -231,6 +231,6 @@ class MRILocaliser:
             # 20 pixels probably shouldn't be hardcoded
             if abs(valid_centres[i] - centres_mean) < 20:
                 centred_slices.append(valid_indices[i])
-        self._crop_arrays(axial_indices=(centred_slices[0], centred_slices[-1]-5))
+        self._crop_arrays(axial_indices=(centred_slices[0], centred_slices[-1]-15))
 
         return valid_centres
